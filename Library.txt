@@ -979,55 +979,53 @@ do
 
 			-- // Dragging
 			Library:Connection(AccentOutline.MouseButton1Down, function()
--- Fixed Roblox UI Library Dragging Logic
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 
-local Library = {}
+local Dragging = {}
 
-function Library:MakeDraggable(topbarObject, object)
+function Dragging.Init(topbarObject, object)
 	local dragging = false
 	local dragInput
 	local dragStart
 	local startPos
-
-	local function update(input)
-		local delta = input.Position - dragStart
-		object.Position = UDim2.new(
-			startPos.X.Scale, 
-			startPos.X.Offset + delta.X, 
-			startPos.Y.Scale, 
-			startPos.Y.Offset + delta.Y
-		)
-	end
 
 	topbarObject.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			dragStart = input.Position
 			startPos = object.Position
-			
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
+
+			-- Listen globally for movement and release so it never gets stuck
+			local moveConnection
+			local releaseConnection
+
+			moveConnection = UserInputService.InputChanged:Connect(function(moveInput)
+				if moveInput.UserInputType == Enum.UserInputType.MouseMovement or moveInput.UserInputType == Enum.UserInputType.Touch then
+					if dragging then
+						local delta = moveInput.Position - dragStart
+						object.Position = UDim2.new(
+							startPos.X.Scale, 
+							startPos.X.Offset + delta.X, 
+							startPos.Y.Scale, 
+							startPos.Y.Offset + delta.Y
+						)
+					end
+				end
+			end)
+
+			releaseConnection = UserInputService.InputEnded:Connect(function(endInput)
+				if endInput.UserInputType == Enum.UserInputType.MouseButton1 or endInput.UserInputType == Enum.UserInputType.Touch then
 					dragging = false
+					if moveConnection then moveConnection:Disconnect() end
+					if releaseConnection then releaseConnection:Disconnect() end
 				end
 			end)
 		end
 	end)
-
-	topbarObject.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragInput = input
-		end
-	end)
-
-	UserInputService.InputChanged:Connect(function(input)
-		if input == dragInput and dragging then
-			update(input)
-		end
-	end)
 end
+
+return Dragging
 			Library:Resize(Resize, AccentOutline)
 
 			-- // Functions

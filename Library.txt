@@ -978,7 +978,7 @@ do
 			}
 
 			-- // Dragging
-			Library:Connection(AccentOutline.MouseButton1Down, function()
+			Library:Connect(AccentOutline.MouseButton1Down, function()
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 

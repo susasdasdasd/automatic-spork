@@ -35,7 +35,11 @@ local GetPlayers = __index(Players, "GetPlayers")
 
 local RequiredDistance, Typing, Running, ServiceConnections, Animation, OriginalSensitivity = 2000, false, false, {}
 local Connect = __index(game, "DescendantAdded").Connect
-local Disconnect
+local Disconnect = function(connection)
+	if connection then
+		connection:Disconnect()
+	end
+end
 
 if getgenv().ExtremeAimbotV2 and getgenv().ExtremeAimbotV2.Exit then
 	getgenv().ExtremeAimbotV2:Exit()

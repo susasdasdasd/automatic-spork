@@ -979,49 +979,55 @@ do
 
 			-- // Dragging
 			Library:Connection(AccentOutline.MouseButton1Down, function()
-
--- // Dragging
+-- Fixed Roblox UI Library Dragging Logic
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
-Library:Connection(AccentOutline.InputBegan, function(Input)
-    if Input.UserInputType == Enum.UserInputType.MouseButton1
-        or Input.UserInputType == Enum.UserInputType.Touch then
+local Library = {}
 
-        Window.Dragging[1] = true
+function Library:MakeDraggable(topbarObject, object)
+	local dragging = false
+	local dragInput
+	local dragStart
+	local startPos
 
-        local Location = UserInputService:GetMouseLocation()
-        Window.Dragging[2] = UDim2.new(
-            0,
-            Location.X - AccentOutline.AbsolutePosition.X,
-            0,
-            Location.Y - AccentOutline.AbsolutePosition.Y
-        )
-    end
-end)
+	local function update(input)
+		local delta = input.Position - dragStart
+		object.Position = UDim2.new(
+			startPos.X.Scale, 
+			startPos.X.Offset + delta.X, 
+			startPos.Y.Scale, 
+			startPos.Y.Offset + delta.Y
+		)
+	end
 
-Library:Connection(UserInputService.InputEnded, function(Input)
-    if Input.UserInputType == Enum.UserInputType.MouseButton1
-        or Input.UserInputType == Enum.UserInputType.Touch then
+	topbarObject.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = object.Position
+			
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
 
-        Window.Dragging[1] = false
-        Window.Dragging[2] = UDim2.new(0, 0, 0, 0)
-    end
-end)
+	topbarObject.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end)
 
-Library:Connection(UserInputService.InputChanged, function(Input)
-    if Window.Dragging[1] then
-        local Location = UserInputService:GetMouseLocation()
-
-        AccentOutline.Position = UDim2.new(
-            0,
-            Location.X - Window.Dragging[2].X.Offset
-                + (AccentOutline.Size.X.Offset * AccentOutline.AnchorPoint.X),
-            0,
-            Location.Y - Window.Dragging[2].Y.Offset
-                + (AccentOutline.Size.Y.Offset * AccentOutline.AnchorPoint.Y)
-        )
-    end
-end)
+	UserInputService.InputChanged:Connect(function(input)
+		if input == dragInput and dragging then
+			update(input)
+		end
+	end)
+end
 			Library:Resize(Resize, AccentOutline)
 
 			-- // Functions

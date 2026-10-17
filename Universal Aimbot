@@ -58,7 +58,7 @@ getgenv().ExtremeAimbotV2 = {
 		Sensitivity2 = 3.5,
 		LockMode = 1,
 		LockPart = "Head",
-		TriggerKey = Enum.UserInputType.MouseButton2,
+		TriggerKey = Enum.UserInputType.MouseButton4,
 		Toggle = false
 	},
 	FOVSettings = {
